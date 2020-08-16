@@ -11,6 +11,13 @@ class Skewb:
 		return [self.front, self.up, self.down, 
 			self.left, self.right, self.back]
 
+	def to_flat_int_array(self, tile_dict):
+		general_array = self.to_array()
+		flat_array = []
+		for face in general_array:
+			flat_array.extend([tile_dict[tile] for tile in face])
+		return flat_array
+
 	def is_solved(self):
 		for face in self.to_array():
 			if len(set(face)) > 1:
