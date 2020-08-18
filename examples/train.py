@@ -1,116 +1,184 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import gym
-import sys
 import torch
-from torch import nn
-from torch import optim
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+import torch.distributions as distributions
+
+import matplotlib.pyplot as plt
+import numpy as np
+import gym
 import gym_skewb
 
-class policy_estimator():
-    def __init__(self, env):
-        self.n_inputs = env.observation_space.shape[0]
-        self.n_outputs = env.action_space.n
+train_env = gym.make('Skewb-v0')
+test_env = gym.make('Skewb-v0')
+
+class MLP(nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim, dropout = 0.5):
+        super().__init__()
+
+        self.fc_1 = nn.Linear(input_dim, hidden_dim)
+        self.fc_2 = nn.Linear(hidden_dim, output_dim)
+        self.dropout = nn.Dropout(dropout) # to avoid overfitting
+
+    def forward(self, x):
+        x = self.fc_1(x)
+        x = self.dropout(x)
+        x = F.relu(x)
+        x = self.fc_2(x)
+        return x
+
+INPUT_DIM = train_env.observation_space.shape[0]
+HIDDEN_DIM = 128
+OUTPUT_DIM = train_env.action_space.n
+
+policy = MLP(INPUT_DIM, HIDDEN_DIM, OUTPUT_DIM)
+
+def init_weights(m):
+    if type(m) == nn.Linear:
+        torch.nn.init.xavier_normal_(m.weight)
+        m.bias.data.fill_(0)
+
+policy.apply(init_weights)
+
+LEARNING_RATE = 0.01
+
+optimizer = optim.Adam(policy.parameters(), lr = LEARNING_RATE)
+
+def train(env, policy, optimizer, discount_factor):
+    
+    policy.train()
+    
+    log_prob_actions = []
+    rewards = []
+    done = False
+    episode_reward = 0
+
+    state = env.reset(1)
+
+    while not done:
+        state = torch.FloatTensor(state).unsqueeze(0)
+
+        action_pred = policy(state)
         
-        # Define network
-        self.network = nn.Sequential(
-            nn.Linear(self.n_inputs, 16), 
-            nn.ReLU(), 
-            nn.Linear(16, self.n_outputs),
-            nn.Softmax(dim=-1))
-    
-    def predict(self, state):
-        action_probs = self.network(torch.FloatTensor(state))
-        return action_probs
-
-def discount_rewards(rewards, gamma=0.99):
-    r = np.array([gamma**i * rewards[i] 
-        for i in range(len(rewards))])
-    # Reverse the array direction for cumsum and then
-    # revert back to the original order
-    r = r[::-1].cumsum()[::-1]
-    temp = r - r.mean()
-    return temp
-
-def reinforce(env, policy_estimator, num_episodes=2000,
-              batch_size=10, gamma=0.99):
-    # Set up lists to hold results
-    total_rewards = []
-    batch_rewards = []
-    batch_actions = []
-    batch_states = []
-    batch_counter = 1
-    
-    # Define optimizer
-    optimizer = optim.Adam(policy_estimator.network.parameters(), 
-                           lr=0.01)
-    
-    action_space = np.arange(env.action_space.n)
-    ep = 0
-    while ep < num_episodes:
-        s_0 = env.reset()
-        states = []
-        rewards = []
-        actions = []
-        done = False
-        while done == False:
-            # Get actions and convert to numpy array
-            action_probs = policy_estimator.predict(
-                s_0).detach().numpy()
-            action = np.random.choice(action_space, 
-                p=action_probs)
-            s_1, r, done, _ = env.step(action)
-            
-            states.append(s_0)
-            rewards.append(r)
-            actions.append(action)
-            s_0 = s_1
-            
-            # If done, batch data
-            if done:
-                batch_rewards.extend(discount_rewards(
-                    rewards, gamma))
-                batch_states.extend(states)
-                batch_actions.extend(actions)
-                batch_counter += 1
-                total_rewards.append(sum(rewards))
+        action_prob = F.softmax(action_pred, dim = -1)
                 
-                # If batch is complete, update network
-                if batch_counter == batch_size:
-                    optimizer.zero_grad()
-                    state_tensor = torch.FloatTensor(batch_states)
-                    reward_tensor = torch.FloatTensor(
-                        batch_rewards)
-                    # Actions are used as indices, must be 
-                    # LongTensor
-                    action_tensor = torch.LongTensor(
-                       batch_actions)
-                    
-                    # Calculate loss
-                    logprob = torch.log(
-                        policy_estimator.predict(state_tensor))
-                    selected_logprobs = reward_tensor * torch.gather(logprob, 1, action_tensor).squeeze()
-                    loss = -selected_logprobs.mean()
-                    
-                    # Calculate gradients
-                    loss.backward()
-                    # Apply gradients
-                    optimizer.step()
-                    
-                    batch_rewards = []
-                    batch_actions = []
-                    batch_states = []
-                    batch_counter = 1
-                    
-                avg_rewards = np.mean(total_rewards[-100:])
-                # Print running average
-                print("\rEp: {} Average of last 100:" +   
-                     "{:.2f}".format(
-                     ep + 1, avg_rewards), end="")
-                ep += 1
-                
-    return total_rewards
+        dist = distributions.Categorical(action_prob)
 
-env = gym.make('Skewb-v0')
-policy_est = policy_estimator(env)
-rewards = reinforce(env, policy_est)
+        action = dist.sample()
+        
+        log_prob_action = dist.log_prob(action)
+        
+        state, reward, done, _ = env.step(action.item())
+
+        log_prob_actions.append(log_prob_action)
+        rewards.append(reward)
+
+        episode_reward += reward
+
+    print("done")
+
+    log_prob_actions = torch.cat(log_prob_actions)
+        
+    returns = calculate_returns(rewards, discount_factor)
+        
+    loss = update_policy(returns, log_prob_actions, optimizer)
+
+    return loss, episode_reward
+
+
+def calculate_returns(rewards, discount_factor, normalize = True):
+    returns = []
+    R = 0
+    
+    for r in reversed(rewards):
+        R = r + R * discount_factor
+        returns.insert(0, R)
+        
+    returns = torch.tensor(returns)
+    
+    if normalize:
+        returns = (returns - returns.mean()) / returns.std()
+        
+    return returns
+
+def update_policy(returns, log_prob_actions, optimizer):
+    returns = returns.detach()
+    
+    loss = - (returns * log_prob_actions).sum()
+    
+    optimizer.zero_grad()
+    
+    loss.backward()
+    
+    optimizer.step()
+    
+    return loss.item()
+
+def evaluate(env, policy):
+    
+    policy.eval()
+    
+    done = False
+    episode_reward = 0
+
+    state = env.reset()
+
+    while not done:
+        
+        state = torch.FloatTensor(state).unsqueeze(0)
+        
+        with torch.no_grad():
+        
+            action_pred = policy(state)
+        
+            action_prob = F.softmax(action_pred, dim = -1)
+                            
+        action = torch.argmax(action_prob, dim = -1)
+            
+        state, reward, done, _ = env.step(action.item())
+
+        episode_reward += reward
+        
+    return episode_reward
+
+MAX_EPISODES = 500
+DISCOUNT_FACTOR = 0.99
+N_TRIALS = 25
+REWARD_THRESHOLD = 475
+PRINT_EVERY = 1
+
+train_rewards = []
+test_rewards = []
+
+for episode in range(1, MAX_EPISODES+1):
+    
+    loss, train_reward = train(train_env, policy, optimizer, DISCOUNT_FACTOR)
+    print("trianaiand")
+
+    test_reward = evaluate(test_env, policy)
+    print("asdf")
+    
+    train_rewards.append(train_reward)
+    test_rewards.append(test_reward)
+    
+    mean_train_rewards = np.mean(train_rewards[-N_TRIALS:])
+    mean_test_rewards = np.mean(test_rewards[-N_TRIALS:])
+    
+    if episode % PRINT_EVERY == 0:
+    
+        print(f'| Episode: {episode:3} | Mean Train Rewards: {mean_train_rewards:5.1f} | Mean Test Rewards: {mean_test_rewards:5.1f} |')
+    
+    if mean_test_rewards >= REWARD_THRESHOLD:
+        
+        print(f'Reached reward threshold in {episode} episodes')
+        
+        break
+
+plt.figure(figsize=(12,8))
+plt.plot(test_rewards, label='Test Reward')
+plt.plot(train_rewards, label='Train Reward')
+plt.xlabel('Episode', fontsize=20)
+plt.ylabel('Reward', fontsize=20)
+plt.hlines(REWARD_THRESHOLD, 0, len(test_rewards), color='r')
+plt.legend(loc='lower right')
+plt.grid()

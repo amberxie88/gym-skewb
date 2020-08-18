@@ -31,7 +31,7 @@ TILE_LOOKUP = {
 class SkewbEnv(gym.Env):
 
 	def __init__(self):
-		self.mySkewb = skewb.Skewb() #todo: Create Skewb
+		self.mySkewb = skewb.Skewb() 
 		self.action_space = spaces.Discrete(4)
 
 		#No. of tiles * No. of faces
@@ -47,12 +47,12 @@ class SkewbEnv(gym.Env):
 	def step(self, action):
 		self._take_action(action)
 		reward = self._get_reward()
-		episode_over = self.mySkewb.is_solved() #todo: implement solved
+		episode_over = self.mySkewb.is_solved() 
 		info_dict = {'classic': skewb.Skewb().to_array(), 'mine': self.mySkewb.to_array()}
 		return self.get_state(), reward, episode_over, info_dict 
 
 	def reset(self, step = 3):
-		self.mySkewb = skewb.Skewb() #todo: Create Skewb
+		self.mySkewb = skewb.Skewb()
 		for i in range(step):
 			self.step(self.action_space.sample())
 		return self.get_state()
@@ -66,9 +66,9 @@ class SkewbEnv(gym.Env):
 		return self.mySkewb.to_flat_int_array(TILE_LOOKUP)
 
 	def _take_action(self, action):
-		self.mySkewb.move(ACTION_LOOKUP[action]) #todo: implement move
+		self.mySkewb.move(ACTION_LOOKUP[action]) 
 
 	def _get_reward(self):
-		return np.mean(np.array(skewb.Skewb().to_array()) == np.array(self.mySkewb.to_array())) #todo: implement reward
+		return np.mean(np.array(skewb.Skewb().to_array()) == np.array(self.mySkewb.to_array()))
 
 
