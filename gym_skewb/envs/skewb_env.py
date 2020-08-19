@@ -58,12 +58,11 @@ class SkewbEnv(gym.Env):
 		return self.get_state()
 
 	def render(self, mode='human', close=False):
-		print("Rendering")
 		print(self.mySkewb.to_array())
 		return
 
 	def get_state(self):
-		return self.mySkewb.to_flat_int_array(TILE_LOOKUP)
+		return np.array(self.mySkewb.to_flat_int_array(TILE_LOOKUP))
 
 	def _take_action(self, action):
 		self.mySkewb.move(ACTION_LOOKUP[action]) 
