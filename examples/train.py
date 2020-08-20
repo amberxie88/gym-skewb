@@ -14,16 +14,26 @@ check_env(env, warn=True)
 #env = make_vec_env(lambda: env, n_envs=1)
 # Train the agent
 #model = ACKTR('MlpPolicy', env, verbose=1).learn(5000)
-model = DQN(MlpPolicy, env, verbose=1, 
-        buffer_size=50000,
-        learning_rate=0.01, 
+"""model = DQN(MlpPolicy, env, verbose=1, 
+        buffer_size=25000,
+        learning_rate=0.001, 
         exploration_fraction=0.3,
         exploration_final_eps = 0.01, 
-        learning_starts=1000, 
-        target_network_update_freq=1000,
+        learning_starts=0, 
+        target_network_update_freq=100,
         gamma=0.99
-    ).learn(total_timesteps=250000)
+    ).learn(total_timesteps=25000)"""
+
+model = DQN(MlpPolicy, env, verbose=1,
+    ).learn(250000)
+
+print(model.learning_rate)
 
 print("Saving...")
-model.save("newmodel25000.pkl")
+model.save("model25000.pkl")
+
+# Best was Learning 100, target 100, buffer 50k, lr 0.001, expl 0.3,
+# expl final 0.01, gamma 0.99
+
+# 1e-4 seems to be the best
 

@@ -12,16 +12,18 @@ import gym_skewb
 # Create environment and load model
 env = gym.make('Skewb-v0')
 check_env(env, warn=True)
-model = DQN.load("newmodel25000.pkl")
-model = DQN.load("model.pkl")
+model = DQN.load("model25000.pkl")
+#model = DQN.load("basicmodel.pkl")
+#model = DQN.load("currentbest.pkl")
 
 # Test the trained agent
 scramble_steps = 1
 obs = env.reset(step=scramble_steps)
-env.render()
+#env.render()
 
 iterations = 100
 n_steps = 50
+failures = 0
 for _ in range(iterations):
   for step in range(n_steps):
     action, _ = model.predict(obs, deterministic=True)
@@ -38,4 +40,7 @@ for _ in range(iterations):
       break
   if step + 1 == n_steps:
     print("Goal not reached")
+    failures += 1
   env.reset(step=scramble_steps)
+
+print((iterations - failures) / iterations, "success")
