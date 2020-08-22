@@ -34,15 +34,9 @@ for training with stable baselines.
 
 ## Skewb
 
-The Skewb representation is implemented in
-```
-skewb.py
-```
+The Skewb representation is implemented in ```skewb.py```
 
-Basic tests for correct implementation of the Skewb are in 
-```
-test.py
-```
+Basic tests for correct implementation of the Skewb are in ```test.py```
 
 ### Skewb Representation
 The Skewb is represented as six arrays of colors. Each side has five pieces, and the following image describes the index in each array for each piece.
