@@ -12,14 +12,11 @@ import gym_skewb
 # Create environment and load model
 env = gym.make('Skewb-v0')
 check_env(env, warn=True)
-#model = DQN.load("newmodel250000.pkl")
-#model = DQN.load("basicmodel.pkl")
-#model = DQN.load("currentbest.pkl")
-model = DQN.load("skewbmodel.pkl")
+model = DQN.load("model.pkl")
 
 # Test the trained agent
 scramble_steps = 1
-obs = env.reset(step=scramble_steps)
+obs = env.reset(moves=scramble_steps)
 #env.render()
 
 iterations = 100
@@ -36,15 +33,13 @@ for _ in range(iterations):
     #print('obs=', obs, 'reward=', reward, 'done=', done)
     #env.render(mode='console')
     if done:
-      # Note that the VecEnv resets automatically
-      # when a done signal is encountered
-      #print("Goal reached!", "reward=", reward)
-      print("Goal reached in", step + 1, "steps")
       break
-  if step + 1 == n_steps:
+  if total_reward == 0:
     print("Goal not reached")
     failures += 1
-  print("Reward", total_reward)
-  env.reset(step=scramble_steps)
+  else: 
+    print("Goal reached in", env.step_count, "steps")
+  env.reset(moves=scramble_steps)
 
+print(failures)
 print((iterations - failures) / iterations, "success")

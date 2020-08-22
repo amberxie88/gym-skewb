@@ -11,35 +11,23 @@ import gym_skewb
 
 env = gym.make('Skewb-v0')
 check_env(env, warn=True)
-#env = make_vec_env(lambda: env, n_envs=1)
-# Train the agent
-#model = ACKTR('MlpPolicy', env, verbose=1).learn(5000)
-"""model = DQN(MlpPolicy, env, verbose=1, 
-        buffer_size=25000,
-        learning_rate=0.001, 
-        exploration_fraction=0.3,
-        exploration_final_eps = 0.01, 
-        learning_starts=0, 
-        target_network_update_freq=100,
-        gamma=0.99
-    ).learn(total_timesteps=25000)"""
 
-model = DQN(MlpPolicy, env, verbose=1,
-        learning_rate=0.1
-    ).learn(250000)
+model = DQN(MlpPolicy, 
+        env, 
+        verbose=1,
+        learning_rate=0.001,
+        buffer_size=50000,
+        exploration_fraction=0.3,
+        exploration_final_eps=0.01,
+        train_freq=4,
+        learning_starts=10000,
+        target_network_update_freq=1000,
+        gamma=0.99,
+        prioritized_replay=True,
+        prioritized_replay_alpha=0.6
+    ).learn(total_timesteps=100000, log_interval=100)
 
 print(model.learning_rate)
 
 print("Saving...")
-model.save("newmodel250000.pkl")
-
-# Best was Learning 100, target 100, buffer 50k, lr 0.001, expl 0.3,
-# expl final 0.01, gamma 0.99
-
-# 1e-4 seems to be the best. 0.0005 is standard
-
-# 0.001, 0.01 with 25000 -> 20%
-# 0.1 with 25000 -> 27%
-# 0.00005 with 25000 -> 10% really bad
-
-#0.1 with 250000 -> 25%
+model.save("model.pkl")

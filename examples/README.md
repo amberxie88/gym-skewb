@@ -12,4 +12,6 @@ For evaluation: ```python3 baselines/runBaselines.py```
 
 ## Stable Baselines
 
+For training: ```python3 baselines/train.py```
 
+For evaluation: ```python3 baselines/run.py```
