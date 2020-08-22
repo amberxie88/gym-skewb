@@ -26,16 +26,10 @@ for _ in range(3):
 ```
 
 ## Examples
-Check 
-``` 
-examples/baselines
-```
+Check ``` examples/baselines ```
 for training with baselines.
 
-Check 
-```
-examples/stablebaselines
-```
+Check ```examples/stablebaselines```
 for training with stable baselines. 
 
 ## Skewb
