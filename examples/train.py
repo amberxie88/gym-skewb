@@ -25,15 +25,21 @@ check_env(env, warn=True)
     ).learn(total_timesteps=25000)"""
 
 model = DQN(MlpPolicy, env, verbose=1,
+        learning_rate=0.1
     ).learn(250000)
 
 print(model.learning_rate)
 
 print("Saving...")
-model.save("model25000.pkl")
+model.save("newmodel250000.pkl")
 
 # Best was Learning 100, target 100, buffer 50k, lr 0.001, expl 0.3,
 # expl final 0.01, gamma 0.99
 
-# 1e-4 seems to be the best
+# 1e-4 seems to be the best. 0.0005 is standard
 
+# 0.001, 0.01 with 25000 -> 20%
+# 0.1 with 25000 -> 27%
+# 0.00005 with 25000 -> 10% really bad
+
+#0.1 with 250000 -> 25%
