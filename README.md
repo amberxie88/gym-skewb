@@ -1,6 +1,6 @@
 # gym-skewb
 
-An OpenAI environment for the Skewb
+An OpenAI environment for the Skewb and an implementation of Deep Reinforcement Learning to solve this tricky puzzle.
 
 ## Installation
 
