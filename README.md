@@ -25,12 +25,14 @@ for _ in range(3):
     observation, reward, done, info = env.step(env.action_space.sample()) 
 ```
 
-## Examples
+## Examples and Training
 Check ``` examples/baselines ```
 for training with baselines.
 
 Check ```examples/stablebaselines```
 for training with stable baselines. 
+
+Currently, the model has reached a 70% solve rate for three-move scrambles after ~2 hours of training with Deep Reinforcement Learning. To see training and run solves on the model, check the implementation of the Deep Q-Network in the respective folders.
 
 ## Skewb
 
