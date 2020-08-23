@@ -15,7 +15,7 @@ check_env(env, warn=True)
 model = DQN.load("model.pkl")
 
 # Test the trained agent
-scramble_steps = 1
+scramble_steps = 3
 obs = env.reset(moves=scramble_steps)
 #env.render()
 

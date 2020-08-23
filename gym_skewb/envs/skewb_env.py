@@ -61,7 +61,7 @@ class SkewbEnv(gym.Env):
 		info_dict = {'classic': skewb.Skewb().to_array(), 'mine': self.mySkewb.to_array()}
 		return self.get_state(), reward, episode_over, info_dict 
 
-	def reset(self, moves=1):
+	def reset(self, moves=5):
 		self.mySkewb = skewb.Skewb()
 		self.action_log = []
 		self.scramble_log = []

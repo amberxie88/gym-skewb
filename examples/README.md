@@ -15,3 +15,5 @@ For evaluation: ```python3 baselines/runBaselines.py```
 For training: ```python3 baselines/train.py```
 
 For evaluation: ```python3 baselines/run.py```
+
+Currently, the stable baselines model has reached 70% accuracy on three-move scrambles after ~2 hours of training.
