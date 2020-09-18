@@ -47,4 +47,4 @@ The Skewb is represented as six arrays of colors. Each side has five pieces, and
 
 The four unique turns (R, L, U, F) are implemented; all others are derivations of these four. 
 
-Currently, the episode ends at 40 moves, meaning that any further moves (which may lead to solves) will not be considered. For more complicated scrambles, 40 moves may not be sufficient, and this limit should be extended.
+Currently, the episode ends at 40 moves, meaning that any further moves (which may lead to solves) will not be considered. Scrambles can be solved in less than 40 moves, but for more training (longer episodes), this limit could be extended.
