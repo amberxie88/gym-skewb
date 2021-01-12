@@ -33,6 +33,8 @@ class Skewb:
 			self._turn_left()
 		elif move_id == 'U':
 			self._turn_upper()
+		elif move_id == 'r':
+			self._turn_lower_right()
 
 	def _turn_front(self):
 		# First side of turn
@@ -146,3 +148,6 @@ class Skewb:
 		self.down[4] = self.right[3]
 		self.right[3] = temp
 
+	def _turn_lower_right(self):
+		self._turn_left()
+		self._turn_left()
