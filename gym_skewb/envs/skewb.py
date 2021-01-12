@@ -35,6 +35,12 @@ class Skewb:
 			self._turn_upper()
 		elif move_id == 'r':
 			self._turn_lower_right()
+		elif move_id == 'l':
+			self._turn_lower_left()
+		elif move_id == 'B':
+			self._turn_back()
+		elif move_id == 'D':
+			self._turn_lower()
 
 	def _turn_front(self):
 		# First side of turn
@@ -151,3 +157,12 @@ class Skewb:
 	def _turn_lower_right(self):
 		self._turn_left()
 		self._turn_left()
+	def _turn_lower_left(self):
+		self._turn_right()
+		self._turn_right()
+	def _turn_back(self):
+		self._turn_front()
+		self._turn_front()
+	def _turn_lower(self):
+		self._turn_upper()
+		self._turn_upper()
